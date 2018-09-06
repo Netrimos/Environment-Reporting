@@ -1,12 +1,22 @@
-
-module.exports.timestamp = () => { return Math.floor(Date.now() / 1000); }
-
-module.exports.toTimestamp = (strDate) => {
-   var datum = Date.parse(strDate);
-   return datum/1000;
-   // accepts 08/18/2018 15:05:53
-   // accepts August 18, 2018 15:05:53"
+/*
+function to make all numbers two digits 1 = 01
+Also option for txt with singular logic 1 min / 2 mins
+stringToAdd is whatever you would like...
+*/
+function twoDigits(num, stringToAdd){
+  num = Math.floor(num);
+  let notSingular = true;
+  if (num == 1 || num == 0) notSingular = false;
+  numWithZero = '0'+ num;
+  numWithZero = numWithZero.substr(-2);
+  if (stringToAdd) {
+     num = `${num}${stringToAdd}`;
+     if (notSingular) num = num + 's';
+  }
+  else num = numWithZero;
+  return num;
 }
+
 
 module.exports.createGUID = () => {
   function s4() {
@@ -17,12 +27,80 @@ module.exports.createGUID = () => {
   return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
 }
 
+module.exports.timestamp = () => { return Math.floor(Date.now() / 1000); }
+
+module.exports.toTimestamp = (strDate) => {
+  // accepts 08/18/2018 15:05:53
+  // accepts 08-18-2018 15:05:53
+  // accepts 15:05:53
+  switch(strDate.toString().length){
+    case 19: break;
+    case 8: strDate = "1970-01-01 "+strDate; break;
+    default: return ".toTimeStamp: improper date or time"; break;
+  }
+
+   var datum = Date.parse(strDate);
+   //datum = datum-18000; //calculating Timezone...  -5 EST
+   return datum/1000;
+}
+
+module.exports.timeDifference = (timestampA, timestampB, type) => {
+/* error handling ========================= */
+  let a, b;
+  switch(timestampA.toString().length){
+    case 10: a = timestampA; break;
+    case 13: a = timestampA/1000; break;
+    default: a = timestampA; break;
+    //default: return `You need a 10 or 13 digit timestamp, you sent this ${timestampA} in the first of two args`; break;
+    }
+  switch(timestampB.toString().length){
+    case 10: b = timestampB; break;
+    case 13: b = timestampB/1000; break;
+    default: b = timestampB; break;
+    //default: return `You need a 10 or 13 digit timestamp, you sent this ${timestampB} in the second of two args`; break;
+  }
+/*end of error handling ========================== */
+
+  let timeDiff = a - b;
+  let hoursCalc = timeDiff / 3600;
+  let minsCalc = (hoursCalc - Math.floor(hoursCalc)) * 60;
+  let secsCalc = (minsCalc - Math.floor(minsCalc)) * 60;
+  hoursCalc = Math.round(hoursCalc);
+  minsCalc = Math.floor(minsCalc);
+  secsCalc = Math.round(secsCalc);
+  //console.log('calc hours ' + hoursCalc);
+  //console.log('calc mins ' + minsCalc);
+  //console.log('calc secs ' + secsCalc);
+  let dateString = twoDigits(hoursCalc, 'hr')+ ', '+twoDigits(minsCalc, 'min');
+
+  switch(type){
+    case 'string': return dateString; break;
+    case 'hour':  return twoDigits(hoursCalc); break;
+    case 'min': return twoDigits(minsCalc); break;
+    case 'sec': return twoDigits(secsCalc); break;
+    //case 'time': return `${Math.floor(hoursCalc)}:${Math.floor(minsCalc)}:${Math.floor(secsCalc)} `; break;
+    case 'time': return `${twoDigits(hoursCalc)}:${twoDigits(minsCalc)}:${twoDigits(secsCalc)} `; break;
+    default:
+      return `
+        Dude, put something as a type...
+        timeDifference = function (timestampA, timestampB, type){}
+
+        Example:
+        string = 18 hrs, 50 mins
+        hour = 18
+        min = 50
+        sec = 30
+        time = 18:50:30`;
+    break;
+  }
+}
+//TODO cleanup the .substr below with twoDigits function above...
 module.exports.formatTime = (timestamp, type) => {
   let d;
   switch(timestamp.toString().length){
     case 10: d = new Date(timestamp*1000); break;
     case 13: d = new Date(timestamp); break;
-    default: return `You need a ten digit timestamp, you sent this ${timestamp}`; break;
+    //default: return `You need a ten digit timestamp, you sent this ${timestamp}`; break;
 
   }
   //if (timestamp.toString().length != 10) return `You need a ten digit timestamp, you sent this ${timestamp}`;

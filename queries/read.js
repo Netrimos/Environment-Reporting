@@ -56,7 +56,7 @@ module.exports.getCompiledStatusById = (req, res, next) => {
 
 
 module.exports.getPlanned = (req, res, next) => {
-  con.query("SELECT * FROM PlannedOutages WHERE active > 0;",(err, result, fields)=>{
+  con.query("SELECT * FROM PlannedOutages;",(err, result, fields)=>{
     if (err) throw err;
     res.send(200, result);
   });

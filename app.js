@@ -2,6 +2,7 @@ const restify = require('restify');
 const server = restify.createServer({ name : 'AllyEnv Reporting Server'});
 const readData = require('./queries/read');
 const addData = require('./queries/create');
+const addBulk = require('./queries/addBulk');
 const delData = require('./queries/delete');
 const port = process.env.PORT || 5001;
 
@@ -16,7 +17,7 @@ server.use(restify.plugins.bodyParser());
 
 //Route Management
 server.get('/', (req, res, next)=>{
-  res.send(200, 'Hello Erik Makes!');
+  res.send(200, 'Welcome to Ally Reports!');
 });
 server.get('/commLog', readData.getCommLog);
 server.get('/commLogLatest', readData.getCommLogLatest);
@@ -27,9 +28,14 @@ server.get('/followUp', readData.getFollowup);
 server.get('/latestStatus', readData.getLatestCompiledStatus);
 server.get('/latestStatus/:id', (req, res, next)=>{ readData.getCompiledStatusById(req.params, res, next)});
 
-server.post('/add/commLog', addData.addComm);
+server.post('/add/commLog', addData.addComLog);
 server.post('/add/comStatus', addData.addComStatus);
 server.post('/add/plannedOutage', addData.addPlannedOutage);
+
+server.post('/add/bulk/plannedOutage', addBulk.plannedOutage);
+server.post('/add/bulk/commLog', addBulk.commLog);
+
+
 
 server.del('/delComm', delData.removeCommunicationById);
 
