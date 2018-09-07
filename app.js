@@ -4,7 +4,7 @@ const readData = require('./queries/read');
 const addData = require('./queries/create');
 const addBulk = require('./queries/addBulk');
 const delData = require('./queries/delete');
-const port = process.env.PORT || 5001;
+const port = process.env.PORT || 50011;
 
 //Add configs to Server
 server.use((req,res,next) => {
