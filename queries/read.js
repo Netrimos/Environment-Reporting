@@ -9,6 +9,44 @@ module.exports.getCommLog = (req, res, next) => {
   next();
 };
 
+module.exports.getCommLogTopLevel = (req, res, next) => {
+  con.query("SELECT * FROM CommLog ORDER BY `childOf`, `msgTime`;",(err, result, fields)=>{
+//TODO... need to put a limit on this...
+//TODO... the logic may simplify if you just manage the LAST item instead of the parent...
+    if (err) throw err;
+
+    let newResult = [];
+    let parentItemParking = {};
+    let msgCountParking = 0;
+
+    for (i=0; i<result.length; i++ ){
+      //console.log (result[i].id);
+      if (result[i].initialComm === 1) {
+        parentItemParking = result[i];
+        msgCountParking = 1;
+        //console.log ("parent item in group = " + result[i].id);
+        }
+      else if (i+1 === result.length || result[i+1].initialComm === 1){
+        parentItemParking.lastMessage = result[i].message;
+        parentItemParking.lastOwner = result[i].currentOwner;
+        parentItemParking.lastMsgTime = result[i].msgTime;
+        parentItemParking.lastDuration = result[i].thisDurationString;
+        parentItemParking.active = result[i].active;
+        parentItemParking.itemCount = msgCountParking;
+        newResult.push(parentItemParking);
+        //console.log ("last item in group = " + result[i].id);
+      }
+      else msgCountParking++;
+    }
+    res.send(200, newResult);
+  });
+  next();
+};
+
+
+
+
+
 module.exports.getCommLogLatest = (req, res, next) => {
   con.query("SELECT * FROM CommLog WHERE initialComm = 1;",(err, result, fields)=>{
     if (err) throw err;
@@ -54,6 +92,41 @@ module.exports.getCompiledStatusById = (req, res, next) => {
   next();
 };
 
+module.exports.getPlannedTopLevel = (req, res, next) => {
+  con.query("SELECT * FROM PlannedOutages ORDER BY `childOf`, `msgTime`;",(err, result, fields)=>{
+//TODO... need to put a limit on this...
+//TODO... the logic may simplify if you just manage the LAST item instead of the parent...
+    if (err) throw err;
+
+    let newResult = [];
+    let parentItemParking = {};
+    let msgCountParking = 0;
+
+    for (i=0; i<result.length; i++ ){
+      //console.log (result[i].id);
+      if (result[i].initialComm === 1) {
+        parentItemParking = result[i];
+        msgCountParking = 1;
+        //console.log ("parent item in group = " + result[i].id);
+        }
+      else if (i+1 === result.length || result[i+1].initialComm === 1){
+        parentItemParking.lastMessage = result[i].message;
+        parentItemParking.lastMsgFrom = result[i].msgFrom;
+        parentItemParking.lastMsgTime = result[i].msgTime;
+        parentItemParking.lastStatusDuration = result[i].thisStatusDuration;
+        parentItemParking.lastDurationString = result[i].thisDurationString;
+        parentItemParking.active = result[i].active;
+        parentItemParking.activeState = result[i].activeState;
+        parentItemParking.itemCount = msgCountParking;
+        newResult.push(parentItemParking);
+        //console.log ("last item in group = " + result[i].id);
+      }
+      else msgCountParking++;
+    }
+    res.send(200, newResult);
+  });
+  next();
+};
 
 module.exports.getPlanned = (req, res, next) => {
   con.query("SELECT * FROM PlannedOutages;",(err, result, fields)=>{
