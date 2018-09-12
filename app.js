@@ -19,10 +19,11 @@ server.use(restify.plugins.bodyParser());
 server.get('/', (req, res, next)=>{
   res.send(200, 'Welcome to Ally Reports!');
 });
+//server.get('/commLog', ()=>{console.log("here")});
 server.get('/commLog', readData.getCommLog);
 server.get('/commLogTopLevel', readData.getCommLogTopLevel);
 server.get('/commLogLatest', readData.getCommLogLatest);
-server.get('/commLog/:id', (req, res, next)=>{ readData.getCommLogById(req.params, res, next) });
+server.get('/commLog/:id', (req, res, next)=>{readData.getCommLogById(req.params, res, next) });
 server.get('/commLogDetail/:id', (req, res, next)=>{ readData.getCommLogDetailsById(req.params, res, next)});
 server.get('/planned', readData.getPlanned);
 server.get('/plannedTopLevel', readData.getPlannedTopLevel);

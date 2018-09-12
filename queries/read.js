@@ -59,7 +59,7 @@ module.exports.getCommLogLatest = (req, res, next) => {
 };
 
 module.exports.getCommLogById = (req, res, next) => {
-  con.query(`SELECT * FROM CommLog WHERE id = ${req.id};`,(err, result, fields)=>{
+    con.query(`SELECT * FROM CommLog WHERE id = ${req.id};`,(err, result, fields)=>{
     if (err) throw err;
     res.send(200, result);
   });
@@ -68,7 +68,7 @@ module.exports.getCommLogById = (req, res, next) => {
 
 // TODO Need to make a join and internal reference...
 module.exports.getCommLogDetailsById = (req, res, next) => {
-  con.query(`SELECT * FROM CommLog WHERE id = ${req.id};`,(err, result, fields)=>{
+    con.query(`SELECT * FROM CommLog WHERE childOf = '${req.id}' ORDER BY msgTime;`,(err, result, fields)=>{
     if (err) throw err;
     res.send(200, result);
   });
