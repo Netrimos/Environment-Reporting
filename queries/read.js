@@ -10,7 +10,7 @@ module.exports.getCommLog = (req, res, next) => {
 };
 
 module.exports.getCommLogTopLevel = (req, res, next) => {
-  con.query("SELECT * FROM CommLog ORDER BY `childOf`, `msgTime`;",(err, result, fields)=>{
+  con.query("SELECT * FROM CommLog ORDER BY `msgTime`, `childOf`;",(err, result, fields)=>{
 //TODO... need to put a limit on this...
 //TODO... the logic may simplify if you just manage the LAST item instead of the parent...
     if (err) throw err;
@@ -24,6 +24,9 @@ module.exports.getCommLogTopLevel = (req, res, next) => {
       if (result[i].initialComm === 1) {
         parentItemParking = result[i];
         msgCountParking = 1;
+          if (i+1 === result.length || result[i+1].initialComm === 1) {
+            newResult.push(parentItemParking);
+          }
         //console.log ("parent item in group = " + result[i].id);
         }
       else if (i+1 === result.length || result[i+1].initialComm === 1){
@@ -103,17 +106,20 @@ module.exports.getPlannedTopLevel = (req, res, next) => {
     let msgCountParking = 0;
 
     for (i=0; i<result.length; i++ ){
-      //console.log (result[i].id);
       if (result[i].initialComm === 1) {
         parentItemParking = result[i];
         msgCountParking = 1;
-        //console.log ("parent item in group = " + result[i].id);
+        if (i+1 === result.length || result[i+1].initialComm === 1) {
+          newResult.push(parentItemParking);
         }
-      else if (i+1 === result.length || result[i+1].initialComm === 1){
+      }
+      else if (i+1 === result.length || result[parseInt(i+1)].initialComm === 1){
+        //console.log(result[i].id);
+        //console.log(result[i].thisStausDuration);
         parentItemParking.lastMessage = result[i].message;
         parentItemParking.lastMsgFrom = result[i].msgFrom;
         parentItemParking.lastMsgTime = result[i].msgTime;
-        parentItemParking.lastStatusDuration = result[i].thisStatusDuration;
+        parentItemParking.thisStatusDuration = result[i].thisStatusDuration;
         parentItemParking.lastDurationString = result[i].thisDurationString;
         parentItemParking.active = result[i].active;
         parentItemParking.activeState = result[i].activeState;

@@ -4,10 +4,11 @@ Also option for txt with singular logic 1 min / 2 mins
 stringToAdd is whatever you would like...
 */
 function twoDigits(num, stringToAdd){
+
   num = Math.floor(num);
   let notSingular = true;
-  if (num == 1 || num == 0) notSingular = false;
-  numWithZero = '0'+ num;
+  if (num === 1 || num === 0) notSingular = false;
+  let numWithZero = '0'+ num;
   numWithZero = numWithZero.substr(-2);
   if (stringToAdd) {
      num = `${num}${stringToAdd}`;
@@ -33,9 +34,12 @@ module.exports.toTimestamp = (strDate) => {
   // accepts 08/18/2018 15:05:53
   // accepts 08-18-2018 15:05:53
   // accepts 15:05:53
+  //console.log(strDate.toString().length);
+  //console.log(strDate.toString().length);
+
   switch(strDate.toString().length){
     case 19: break;
-    case 8: strDate = "1970-01-01 "+strDate; break;
+    case 8: strDate = "01/01/1970 "+strDate; break;
     default: return ".toTimeStamp: improper date or time"; break;
   }
 
@@ -45,6 +49,9 @@ module.exports.toTimestamp = (strDate) => {
 }
 
 module.exports.timeDifference = (timestampA, timestampB, type) => {
+  //console.log(timestampA);
+  //console.log(timestampB);
+
 /* error handling ========================= */
   let a, b;
   switch(timestampA.toString().length){
@@ -100,9 +107,11 @@ module.exports.formatTime = (timestamp, type) => {
   switch(timestamp.toString().length){
     case 10: d = new Date(timestamp*1000); break;
     case 13: d = new Date(timestamp); break;
+    default: d = new Date(timestamp); break;
     //default: return `You need a ten digit timestamp, you sent this ${timestamp}`; break;
 
   }
+  //console.log(d);
   //if (timestamp.toString().length != 10) return `You need a ten digit timestamp, you sent this ${timestamp}`;
 
   //var d = new Date(timestamp*1000);
@@ -127,6 +136,7 @@ module.exports.formatTime = (timestamp, type) => {
       meridiem = 'PM';
       newHour = hours-12;
     }
+    if (newHour === 0) newHour = 12;
     return `${newHour}:${minutes.substr(-2)}${meridiem}`;
   }
   //15:05
@@ -153,6 +163,23 @@ module.exports.formatTime = (timestamp, type) => {
   let vlong = ()=> {return `${daysL[dayOfWeek]} ${writtenDate()} - ${milTime()}:${seconds.substr(-2)}`;}
   //2018-09-02 22:53:00
   let DBdateTime = ()=> {return `${year()}-${newMonth.substr(-2)}-${newDayOfMonth.substr(-2)} ${milTime()}:${seconds.substr(-2)}`}
+  //1hr, 5min, 25sec
+  let hrsMins = ()=> {
+    //console.log ("fu");
+    let strA = "";
+    let strB = "";
+    //let strC = "";
+    if (hours === 1) strA = hours + "hr, ";
+    else if (hours > 1) strA = hours + "hrs, ";
+    if (d.getMinutes() === 1) strB = d.getMinutes() + "min";
+    else if (d.getMinutes() > 1) strB = d.getMinutes() + "mins";
+    else strA = strA.replace(", ", "");
+    //if (d.getSeconds() === 1) strC = d.getSeconds() + "sec";
+    //else if (d.getSeconds() > 1) strC = d.getSeconds() + "secs";
+    //else strB = strB.replace(", ","");
+
+    return strA + strB;// + strC;
+  }
 
   switch(type){
     case 'vlong': return vlong(); break;
@@ -160,6 +187,8 @@ module.exports.formatTime = (timestamp, type) => {
     case 'med': return med(); break;
     case 'short': return short(); break;
     case 'shortMil': return shortMil(); break;
+    case 'day': return daysS[dayOfWeek]; break;
+    case 'dayFull': return daysL[dayOfWeek]; break;
     case 'date': return date(); break;
     case 'dateTime': return dateTime(); break;
     case 'dateBrit': return dateBrit(); break;
@@ -167,6 +196,7 @@ module.exports.formatTime = (timestamp, type) => {
     case 'time': return time(); break;
     case 'milTime': return milTime(); break;
     case 'DBdateTime': return DBdateTime(); break;
+    case 'hrsMins': return  hrsMins(); break;
     default:
       return `
         Dude, put something as a type...
@@ -178,6 +208,8 @@ module.exports.formatTime = (timestamp, type) => {
         med = Saturday, August 18, 2018
         short = Sat 08/18/18
         shortMil = Sat 08/18/18 15:05
+        day = Mon
+        dayFull = Monday
         date = 08/18/18
         dateTime = 08/18/18 3:05PM
         dateBrit = 18/08/18
@@ -185,6 +217,7 @@ module.exports.formatTime = (timestamp, type) => {
         time = 3:05PM
         milTime = 15:05
         DBdateTime = 2018-09-02 22:53:00
+        hrsMins = 1hr, 5min//, 25sec
       `;
     break;
   }

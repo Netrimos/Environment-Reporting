@@ -3,11 +3,9 @@ const con = require('../db/con').remoteCon;
 const utils = require('../utils/format');
 
 module.exports.addPlannedOutage = (req, res, next) => {
-
   //console.log(req)
   let myGUID = utils.createGUID();
-  let plannedDuration = (utils.toTimestamp(req.body.plannedDuration)-18000);
-  //18000 is to bring this number to our timezone -5 EST
+  let plannedDuration = req.body.plannedDuration;
   let startTime = utils.toTimestamp(req.body.startTime);
   let thisDurationString = "";
   let thisStausDuration = "";
@@ -26,6 +24,13 @@ module.exports.addPlannedOutage = (req, res, next) => {
     };
     thisDurationString =  utils.timeDifference(msgTime,startTime,'string');
   }
+  function calculateDuration(time){
+    time = utils.toTimestamp('1970-01-01 ' + time);
+    if (time >= 18000) return time-18000;
+    else return 18000-time; //(18000 = timezone offset...)
+    //return time-18000;
+  }
+
   let query =`
   INSERT INTO PlannedOutages (
   GUID,
@@ -61,7 +66,7 @@ module.exports.addPlannedOutage = (req, res, next) => {
   '${req.body.msgFrom}',
   '${req.body.msgFromTeam}',
   '${utils.formatTime(startTime,'DBdateTime')}',
-  '${req.body.plannedDuration}',
+  '${calculateDuration(req.body.plannedDuration)}',
   '${req.body.active}',
   '${req.body.activeState}'
 );`;
@@ -121,7 +126,7 @@ module.exports.addComLog = (req, res, next) => {
     )
     VALUES(
       '${myGUID}',
-      '${req.body.childOf}',
+      '${myGUID}',
       '${req.body.assocTo}',
       '${req.body.initialComm}',
       '${req.body.recordedBy}',
