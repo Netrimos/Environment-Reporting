@@ -18,16 +18,6 @@ function twoDigits(num, stringToAdd){
   return num;
 }
 
-function hrsMinSecsFromEPOCH(time){
-  let obj = {}
-  let hoursCalc = time / 3600;
-  let minsCalc = (hoursCalc - Math.floor(hoursCalc)) * 60;
-  let secsCalc = (minsCalc - Math.floor(minsCalc)) * 60;
-  obj.hours = Math.round(hoursCalc);
-  obj.mins = Math.floor(minsCalc);
-  obj.secs = Math.round(secsCalc);
-}
-
 
 module.exports.createGUID = () => {
   function s4() {
@@ -46,7 +36,7 @@ module.exports.toTimestamp = (strDate) => {
   // accepts 15:05:53
   //console.log(strDate.toString().length);
   //console.log(strDate.toString().length);
-
+  //console.log(strDate);
   switch(strDate.toString().length){
     case 19: break;
     case 8: strDate = "01/01/1970 "+strDate; break;
@@ -78,7 +68,6 @@ module.exports.timeDifference = (timestampA, timestampB, type) => {
   }
 /*end of error handling ========================== */
 
-//Calculate hours min and sec from timestamp
   let timeDiff = a - b;
   let hoursCalc = timeDiff / 3600;
   let minsCalc = (hoursCalc - Math.floor(hoursCalc)) * 60;
@@ -86,9 +75,10 @@ module.exports.timeDifference = (timestampA, timestampB, type) => {
   hoursCalc = Math.round(hoursCalc);
   minsCalc = Math.floor(minsCalc);
   secsCalc = Math.round(secsCalc);
-
-
-  let dateString = twoDigits(hoursCalc, 'hr')+ ' '+twoDigits(minsCalc, 'min');
+  //console.log('calc hours ' + hoursCalc);
+  //console.log('calc mins ' + minsCalc);
+  //console.log('calc secs ' + secsCalc);
+  let dateString = twoDigits(hoursCalc, 'hr')+ ', '+twoDigits(minsCalc, 'min');
 
   switch(type){
     case 'string': return dateString; break;
@@ -97,30 +87,30 @@ module.exports.timeDifference = (timestampA, timestampB, type) => {
     case 'sec': return twoDigits(secsCalc); break;
     //case 'time': return `${Math.floor(hoursCalc)}:${Math.floor(minsCalc)}:${Math.floor(secsCalc)} `; break;
     case 'time': return `${twoDigits(hoursCalc)}:${twoDigits(minsCalc)}:${twoDigits(secsCalc)} `; break;
-    case 'greaterThan': if((a-b)>0) return true; else return false; break;
     default:
       return `
         Dude, put something as a type...
         timeDifference = function (timestampA, timestampB, type){}
 
         Example:
-        string = 18 hrs 50 mins
+        string = 18 hrs, 50 mins
         hour = 18
         min = 50
         sec = 30
-        time = 18:50:30
-        greaterThan = true`;
+        time = 18:50:30`;
     break;
   }
 }
 //TODO cleanup the .substr below with twoDigits function above...
 module.exports.formatTime = (timestamp, type) => {
-  let d = new Date(timestamp);
-  // switch(timestamp.toString().length){
-  //   case 10: d = new Date(timestamp*1000); break;
-  //   case 13: d = new Date(timestamp); break;
-  //   default: d = new Date(timestamp); break;
-  // }
+  let d;
+  switch(timestamp.toString().length){
+    case 10: d = new Date(timestamp*1000); break;
+    case 13: d = new Date(timestamp); break;
+    default: d = new Date(timestamp); break;
+    //default: return `You need a ten digit timestamp, you sent this ${timestamp}`; break;
+
+  }
   //console.log(d);
   //if (timestamp.toString().length != 10) return `You need a ten digit timestamp, you sent this ${timestamp}`;
 
@@ -175,26 +165,20 @@ module.exports.formatTime = (timestamp, type) => {
   let DBdateTime = ()=> {return `${year()}-${newMonth.substr(-2)}-${newDayOfMonth.substr(-2)} ${milTime()}:${seconds.substr(-2)}`}
   //1hr, 5min, 25sec
   let hrsMins = ()=> {
-    let thisTime = hrsMinSecsFromEPOCH(d);
-    console.log(d);
-    //return twoDigits(d.hours, 'hr')+ ', '+twoDigits(d.mins, 'min');
+    //console.log ("fu");
+    let strA = "";
+    let strB = "";
+    //let strC = "";
+    if (hours === 1) strA = hours + "hr, ";
+    else if (hours > 1) strA = hours + "hrs, ";
+    if (d.getMinutes() === 1) strB = d.getMinutes() + "min";
+    else if (d.getMinutes() > 1) strB = d.getMinutes() + "mins";
+    else strA = strA.replace(", ", "");
+    //if (d.getSeconds() === 1) strC = d.getSeconds() + "sec";
+    //else if (d.getSeconds() > 1) strC = d.getSeconds() + "secs";
+    //else strB = strB.replace(", ","");
 
-
-    // //TODO fix this crap...
-    // //console.log (hours);
-    // let strA = "";
-    // let strB = "";
-    // //let strC = "";
-    // if (hours === 1) strA = hours + "hr, ";
-    // else if (hours > 1) strA = hours + "hrs, ";
-    // if (d.getMinutes() === 1) strB = d.getMinutes() + "min";
-    // else if (d.getMinutes() > 1) strB = d.getMinutes() + "mins";
-    // else strA = strA.replace(", ", "");
-    // //if (d.getSeconds() === 1) strC = d.getSeconds() + "sec";
-    // //else if (d.getSeconds() > 1) strC = d.getSeconds() + "secs";
-    // //else strB = strB.replace(", ","");
-    //
-    // return strA + strB;// + strC;
+    return strA + strB;// + strC;
   }
 
   switch(type){

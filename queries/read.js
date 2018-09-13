@@ -10,7 +10,7 @@ module.exports.getCommLog = (req, res, next) => {
 };
 
 module.exports.getCommLogTopLevel = (req, res, next) => {
-  con.query("SELECT * FROM CommLog ORDER BY `msgTime`, `childOf`;",(err, result, fields)=>{
+  con.query("SELECT * FROM `CommLog` WHERE `timeRecorded` >= (SELECT NOW() + INTERVAL -14 DAY) ORDER BY `msgTime`, `childOf`;",(err, result, fields)=>{
 //TODO... need to put a limit on this...
 //TODO... the logic may simplify if you just manage the LAST item instead of the parent...
     if (err) throw err;

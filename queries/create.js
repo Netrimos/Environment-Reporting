@@ -80,30 +80,47 @@ module.exports.addPlannedOutage = (req, res, next) => {
 };
 
 module.exports.addComLog = (req, res, next) => {
-  let myGUID = utils.createGUID();
+  //let parentData = {GUID : "", parentDate : ""};
+  if (req.body.length > 1 ) {
+    processAddCommLog(req.body[0]).then((response)=>{//Add initial parent info and receive data for children
+       for (i = 0; i < req.body.length; i++){
+          if (i>0){ //add parent data to children
+           req.body[i].childOf = response.GUID;
+           req.body[i].parentMsgTime = response.parentDate;
+           processAddCommLog(req.body[i]);
+          }
+       }
+    });
+  }
+  else response = processAddCommLog(req.body);
+  res.send(201, "items added");
+  next();
+};
+
+async function processAddCommLog(req, res){
+  let myGUID;
+  myGUID = utils.createGUID();
   let thisDurationString = "";
   let thisStausDuration = "";
   let startTime = "";
   //Ability to ForceTime...
   let msgTime;
-  msgTime = (utils.toTimestamp(req.body.msgTime));
-  if (req.body.msgTime) msgTime = (utils.toTimestamp(req.body.msgTime));
-  else msgTime = (utils.timestamp());
+  msgTime = (utils.toTimestamp(req.msgTime));
+  //if (req.body.msgTime) msgTime = (utils.toTimestamp(req.body.msgTime));
+  //else msgTime = (utils.timestamp(req.body.msgTime));
+  let childOf = (val) => { if (val == "") return myGUID; else return val; }
 
   //If this has a parent compate times to add the diff to the db as a value and a string...
-  if (req.body.childOf != ''){
-    startTime = req.body.parentMsgTime;
+  if (req.childOf != ''){
+    startTime = req.parentMsgTime;
     thisStausDuration = msgTime - startTime;
     thisDurationString =  utils.timeDifference(msgTime,startTime,'string');
   }
-  console.log('thisStausDuration' + thisStausDuration);
-  console.log('thisDurationString' + thisDurationString);
 
   let query =`
     INSERT INTO CommLog (
       GUID,
       childOf,
-      assocTo,
       initialComm,
       recordedBy,
       plannedOutage,
@@ -118,46 +135,49 @@ module.exports.addComLog = (req, res, next) => {
       statusFrom,
       statusTo,
       currentOwner,
-      finalOwner,
       active,
       thisDuration,
       thisDurationString,
-      followUp
+      followUp,
+      subject
     )
     VALUES(
       '${myGUID}',
-      '${myGUID}',
-      '${req.body.assocTo}',
-      '${req.body.initialComm}',
-      '${req.body.recordedBy}',
-      '${req.body.plannedOutage}',
-      '${req.body.entryFrom}',
+      '${childOf(req.childOf)}',
+      '${req.initialComm}',
+      '${req.recordedBy}',
+      '${req.plannedOutage}',
+      '${req.entryFrom}',
       '${utils.formatTime(msgTime,'DBdateTime')}',
-      '${req.body.priority}',
-      '${req.body.environments}',
-      '${req.body.errorCode}',
-      '${req.body.message}',
-      '${req.body.messageFromTeam}',
+      '${req.priority}',
+      '${req.environments}',
+      '${req.errorCode}',
+      '${req.message}',
+      '${req.messageFromTeam}',
       '${utils.formatTime(msgTime,'DBdateTime')}',
-      '${req.body.statusFrom}',
-      '${req.body.statusTo}',
-      '${req.body.currentOwner}',
-      '${req.body.finalOwner}',
-      '${req.body.active}',
+      '${req.statusFrom}',
+      '${req.statusTo}',
+      '${req.currentOwner}',
+      '${req.active}',
       '${thisStausDuration}',
       '${thisDurationString}',
-      '${req.body.followUp}'
+      '${req.followUp}',
+      '${req.subject}'
     );`;
-  con.query(query, (err, result, fields)=>{
-      if (err) throw err;
+     //console.log(req);
+     //res.send(201,'complete');
+  let myResponse = {};
+  myResponse.GUID = myGUID;
+  myResponse.parentDate = msgTime;
+
+   con.query(query, (err, result, fields)=>{
+     if (err) throw err;
       result.GUID = myGUID;
       result.parentDate = msgTime;
-      res.send(201, result);
-  });
-  next();
-};
-
-
+      //res.send(201, result);
+  });//.then(()=>return myResponse;);
+  return myResponse;
+}
 
 module.exports.addComStatus = (req, res, next) => {
   let query =
