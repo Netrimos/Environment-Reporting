@@ -46,7 +46,7 @@ module.exports.toTimestamp = (strDate) => {
   // accepts 15:05:53
   //console.log(strDate.toString().length);
   //console.log(strDate.toString().length);
-
+ //console.log(strDate);
   switch(strDate.toString().length){
     case 19: break;
     case 8: strDate = "01/01/1970 "+strDate; break;
@@ -55,6 +55,7 @@ module.exports.toTimestamp = (strDate) => {
 
    var datum = Date.parse(strDate);
    //datum = datum-18000; //calculating Timezone...  -5 EST
+   //console.log(strDate);
    return datum/1000;
 }
 
@@ -116,14 +117,13 @@ module.exports.timeDifference = (timestampA, timestampB, type) => {
 //TODO cleanup the .substr below with twoDigits function above...
 module.exports.formatTime = (timestamp, type) => {
   let d = new Date(timestamp);
-  // switch(timestamp.toString().length){
-  //   case 10: d = new Date(timestamp*1000); break;
+   switch(timestamp.toString().length){
+     case 10: d = new Date(timestamp*1000); break;
   //   case 13: d = new Date(timestamp); break;
-  //   default: d = new Date(timestamp); break;
-  // }
+     default: d = new Date(timestamp); break;
+   }
   //console.log(d);
   //if (timestamp.toString().length != 10) return `You need a ten digit timestamp, you sent this ${timestamp}`;
-
   //var d = new Date(timestamp*1000);
   const daysS = ['Sun','Mon','Tues','Wed','Thu','Fri','Sat'];
   const daysL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -176,7 +176,7 @@ module.exports.formatTime = (timestamp, type) => {
   //1hr, 5min, 25sec
   let hrsMins = ()=> {
     let thisTime = hrsMinSecsFromEPOCH(d);
-    console.log(d);
+    //console.log(d);
     //return twoDigits(d.hours, 'hr')+ ', '+twoDigits(d.mins, 'min');
 
 

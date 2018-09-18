@@ -134,6 +134,14 @@ module.exports.getPlannedTopLevel = (req, res, next) => {
   next();
 };
 
+module.exports.getPlannedDetailsById = (req, res, next) => {
+    con.query(`SELECT * FROM PlannedOutages WHERE childOf = '${req.id}' ORDER BY msgTime;`,(err, result, fields)=>{
+    if (err) throw err;
+    res.send(200, result);
+  });
+  next();
+};
+
 module.exports.getPlanned = (req, res, next) => {
   con.query("SELECT * FROM PlannedOutages;",(err, result, fields)=>{
     if (err) throw err;

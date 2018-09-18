@@ -27,6 +27,7 @@ server.get('/commLog/:id', (req, res, next)=>{readData.getCommLogById(req.params
 server.get('/commLogDetail/:id', (req, res, next)=>{ readData.getCommLogDetailsById(req.params, res, next)});
 server.get('/planned', readData.getPlanned);
 server.get('/plannedTopLevel', readData.getPlannedTopLevel);
+server.get('/plannedDetail/:id', (req, res, next)=>{ readData.getPlannedDetailsById(req.params, res, next)});
 server.get('/followUp', readData.getFollowup);
 server.get('/latestStatus', readData.getLatestCompiledStatus);
 server.get('/latestStatus/:id', (req, res, next)=>{ readData.getCompiledStatusById(req.params, res, next)});

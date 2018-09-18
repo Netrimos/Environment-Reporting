@@ -3,23 +3,45 @@ const con = require('../db/con').remoteCon;
 const utils = require('../utils/format');
 
 module.exports.addPlannedOutage = (req, res, next) => {
-  //console.log(req)
+  //console.log(req.body);
+   if (req.body.length > 1 ) {
+     console.log("array");
+
+    processPlanned(req.body[0]).then((response)=>{//Add initial parent info and receive data for children
+
+       for (i = 0; i < req.body.length; i++){
+          if (i>0){ //add parent data to children
+           req.body[i].childOf = response.GUID;
+           req.body[i].parentMsgTime = response.parentDate;
+           processPlanned(req.body[i]);
+          }
+       }
+    });
+  }
+  else response = processPlanned(req.body);
+  res.send(201, "items added");
+  next();
+};
+
+async function processPlanned(req, res){
+console.log("req " + req.initialComm);
   let myGUID = utils.createGUID();
-  let plannedDuration = req.body.plannedDuration;
-  let startTime = utils.toTimestamp(req.body.startTime);
+  let plannedDuration = req.plannedDuration;
+  let startTime = utils.toTimestamp(req.startTime);
   let thisDurationString = "";
   let thisStausDuration = "";
   let isBehind = 0;
   //Ability to ForceTime...
   let msgTime;
-  msgTime = (utils.toTimestamp(req.body.msgTime));
-  if (req.body.msgTime) msgTime = (utils.toTimestamp(req.body.msgTime));
+  msgTime = (utils.toTimestamp(req.msgTime));
+  if (req.msgTime) msgTime = (utils.toTimestamp(req.msgTime));
   else msgTime = (utils.timestamp());
 
+  let childOf = (val) => { if (val == "") return myGUID; else return val; }
   //If this has a parent compate times to add the diff to the db as a value and a string...
-  if (req.body.childOf != ''){
+  if (req.childOf != ''){
     thisStausDuration = msgTime - startTime;
-    if (plannedDuration < thisStausDuration && req.body.active == 1) {
+    if (plannedDuration < thisStausDuration && req.active == 1) {
       isBehind = 1;
     };
     thisDurationString =  utils.timeDifference(msgTime,startTime,'string');
@@ -30,12 +52,16 @@ module.exports.addPlannedOutage = (req, res, next) => {
     else return 18000-time; //(18000 = timezone offset...)
     //return time-18000;
   }
+  //
+  /*
 
+  */
+  //
   let query =`
   INSERT INTO PlannedOutages (
   GUID,
   msgTime,
-  thisStausDuration,
+  thisStatusDuration,
   thisDurationString,
   behindSchedule,
   childOf,
@@ -57,27 +83,33 @@ module.exports.addPlannedOutage = (req, res, next) => {
   '${thisStausDuration}',
   '${thisDurationString}',
   '${isBehind}',
-  '${req.body.childOf}',
-  '${req.body.initialComm}',
-  '${req.body.subject}',
-  '${req.body.entryFrom}',
-  '${req.body.environments}',
-  '${req.body.message}',
-  '${req.body.msgFrom}',
-  '${req.body.msgFromTeam}',
+  '${childOf(req.childOf)}',
+  '${req.initialComm}',
+  '${req.subject}',
+  '${req.entryFrom}',
+  '${req.environments}',
+  '${req.message}',
+  '${req.msgFrom}',
+  '${req.msgFromTeam}',
   '${utils.formatTime(startTime,'DBdateTime')}',
-  '${calculateDuration(req.body.plannedDuration)}',
-  '${req.body.active}',
-  '${req.body.activeState}'
+  '${calculateDuration(req.plannedDuration)}',
+  '${req.active}',
+  '${req.activeState}'
 );`;
-  //console.log(query);res.send(201,'complete');
+
+  let myResponse = {};
+  myResponse.GUID = myGUID;
+  console.log(query);//res.send(201,'complete');
   con.query(query, (err, result, fields)=>{
    if (err) throw err;
     result.GUID = myGUID;
-    res.send(201, result);
+    //res.send(201, result);
   });
-    next();
-};
+  return myResponse;
+}
+
+
+
 
 module.exports.addComLog = (req, res, next) => {
   //let parentData = {GUID : "", parentDate : ""};
@@ -98,6 +130,7 @@ module.exports.addComLog = (req, res, next) => {
 };
 
 async function processAddCommLog(req, res){
+//console.log(req);
   let myGUID;
   myGUID = utils.createGUID();
   let thisDurationString = "";
@@ -164,7 +197,7 @@ async function processAddCommLog(req, res){
       '${req.followUp}',
       '${req.subject}'
     );`;
-     //console.log(req);
+     console.log(query);
      //res.send(201,'complete');
   let myResponse = {};
   myResponse.GUID = myGUID;
